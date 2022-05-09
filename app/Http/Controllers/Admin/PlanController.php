@@ -11,8 +11,7 @@ class PlanController extends Controller
 {
     private $repository;
 
-    public function __construct(plan $plan)
-    {
+    public function __construct(plan $plan){
         $this->repository = $plan;
     }
 
@@ -48,11 +47,20 @@ class PlanController extends Controller
     }
 
     public function destroy($url){
-        $plans = $this->repository->where('url', $url)->first();
+        $plans = $this->repository
+                            ->with('details')
+                            ->where('url', $url)
+                            ->first();
 
         if(!$plans)
             return redirect()->back();
 
+            if ($plans->details->count()> 0){
+                return redirect()
+                               ->back()
+                               ->with('error', 'Existem detahes vinculadosaesse plano, portanto não pode deletar');
+        
+            }
         $plans->delete();
 
         return redirect()->route('plans.index');
